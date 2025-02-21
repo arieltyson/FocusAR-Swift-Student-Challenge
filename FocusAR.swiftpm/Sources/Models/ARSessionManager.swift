@@ -22,7 +22,11 @@ class ARSessionManager: NSObject, ObservableObject {
         config.planeDetection = [.horizontal]
         view.session.delegate = self
         view.session.run(config)
-        isSessionReady = true
+        
+        // Defer the update to avoid publishing changes during view updates.
+        DispatchQueue.main.async { [weak self] in
+            self?.isSessionReady = true
+        }
     }
     
     private func setupProgressTimer() {
