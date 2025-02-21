@@ -1,10 +1,3 @@
-//
-//  File.swift
-//  FocusAR
-//
-//  Created by Ariel Tyson on 18/2/25.
-//
-
 import CoreHaptics
 
 @MainActor

@@ -1,12 +1,3 @@
-//
-//  File.swift
-//  FocusAR
-//
-//  Created by Ariel Tyson on 18/2/25.
-//
-
-// AR Session Handling
-
 import ARKit
 import RealityKit
 

@@ -1,25 +1,22 @@
-//
-//  File.swift
-//  FocusAR
-//
-//  Created by Ariel Tyson on 18/2/25.
-//
-
-// Core ML Model Wrapper
-
 import ARKit
 import CoreML
+import Vision
 
 class ClutterDetector {
     private var vnModel: VNCoreMLModel?
     
     init() {
-        // Attempt to load your Core ML model (ClutterClassifier.mlmodel).
-        if let model = ClutterClassifier(configuration: MLModelConfiguration()).model,
-           let vnModel = try? VNCoreMLModel(for: model) {
-            self.vnModel = vnModel
-        } else {
-            print("Core ML model not loaded. Falling back to saliency detection.")
+        // Load the compiled model from the package's resources.
+        guard let modelURL = Bundle.module.url(forResource: "ClutterClassifier", withExtension: "mlmodel") else {
+            print("Could not find compiled ClutterClassifier.mlmodelc in resources. Falling back to saliency detection.")
+            return
+        }
+        
+        do {
+            let compiledModel = try MLModel(contentsOf: modelURL)
+            self.vnModel = try VNCoreMLModel(for: compiledModel)
+        } catch {
+            print("Error loading compiled model: \(error). Falling back to saliency detection.")
         }
     }
     
@@ -30,8 +27,12 @@ class ClutterDetector {
                 guard let results = request.results as? [VNClassificationObservation],
                       let topResult = results.first else { return }
                 
+                // Extract values to avoid data races
+                let identifier = topResult.identifier
+                let confidence = topResult.confidence
+                
                 DispatchQueue.main.async {
-                    if topResult.identifier == "cluttered" && topResult.confidence > 0.5 {
+                    if identifier == "cluttered" && confidence > 0.5 {
                         AudioManager.shared.playCalmingSound()
                         HapticsManager.shared.playGentlePulse()
                     }

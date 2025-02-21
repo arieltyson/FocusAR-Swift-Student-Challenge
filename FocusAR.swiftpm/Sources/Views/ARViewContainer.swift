@@ -1,12 +1,3 @@
-//
-//  File.swift
-//  FocusAR
-//
-//  Created by Ariel Tyson on 18/2/25.
-//
-
-// ARKit/RealityKit integration
-
 import SwiftUI
 import RealityKit
 import ARKit
