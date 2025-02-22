@@ -37,10 +37,10 @@ let package = Package(
     targets: [
         .executableTarget(
             name: "AppModule",
-            path: "."/*,
+            path: ".",
             resources: [
-                .process("Resources")
-            ]*/
+                .copy("Resources/ClutterClassifier.mlmodelc")
+            ]
         )
     ],
     swiftLanguageVersions: [.version("6")]

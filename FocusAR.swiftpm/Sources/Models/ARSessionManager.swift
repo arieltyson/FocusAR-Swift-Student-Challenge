@@ -5,7 +5,6 @@ import RealityKit
 // Create a wrapper around Timer that conforms to Sendable.
 struct TimerWrapper: @unchecked Sendable {
     let timer: Timer
-    
     func invalidate() {
         timer.invalidate()
     }
@@ -13,13 +12,11 @@ struct TimerWrapper: @unchecked Sendable {
 
 @MainActor
 class ARSessionManager: NSObject, ObservableObject {
-
     @Published var isSessionReady = false
     private var arView: ARView?
     private let clutterDetector = ClutterDetector()
 
     @Published var sessionProgress: Double = 0.0
-
     private var progressTimer: TimerWrapper?
 
     override init() {
@@ -29,9 +26,9 @@ class ARSessionManager: NSObject, ObservableObject {
 
     func setupARView(_ view: ARView) {
         arView = view
-
+        
+        // For SwiftUI Previews, add mock content.
         guard !ProcessInfo.processInfo.isPreview else {
-            // Add mock content for preview
             let sphere = ModelEntity(mesh: .generateSphere(radius: 0.1),
                                      materials: [SimpleMaterial(color: .blue, isMetallic: false)])
             let anchor = AnchorEntity(world: [0, 0, -0.5])
@@ -39,12 +36,12 @@ class ARSessionManager: NSObject, ObservableObject {
             view.scene.addAnchor(anchor)
             return
         }
-
+        
         let config = ARWorldTrackingConfiguration()
         config.planeDetection = [.horizontal]
         view.session.delegate = self
         view.session.run(config)
-
+        
         DispatchQueue.main.async { [weak self] in
             self?.isSessionReady = true
         }
@@ -56,7 +53,7 @@ class ARSessionManager: NSObject, ObservableObject {
             Task { @MainActor in
                 guard let self = self else { return }
                 if self.sessionProgress < 1.0 {
-                    self.sessionProgress += 0.00056 // Reaches 1.0 in 3 minutes
+                    self.sessionProgress += 0.00056 // Reaches approximately 1.0 in 3 minutes
                 } else {
                     self.progressTimer?.invalidate()
                 }
@@ -64,7 +61,7 @@ class ARSessionManager: NSObject, ObservableObject {
         }
         progressTimer = TimerWrapper(timer: timer)
     }
-
+    
     deinit {
         progressTimer?.invalidate()
     }
@@ -91,9 +88,7 @@ class ARSessionManager: NSObject, ObservableObject {
 
             // Animate: scale the sphere up to simulate an expanding effect.
             let scaleUp = SIMD3<Float>(repeating: 2.0)
-            sphere.move(to: Transform(scale: scaleUp,
-                                      rotation: sphere.transform.rotation,
-                                      translation: sphere.position),
+            sphere.move(to: Transform(scale: scaleUp, rotation: sphere.transform.rotation, translation: sphere.position),
                         relativeTo: sphere.parent,
                         duration: 0.5)
 
