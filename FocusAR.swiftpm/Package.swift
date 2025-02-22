@@ -31,6 +31,9 @@ let package = Package(
                 .landscapeRight,
                 .landscapeLeft,
                 .portraitUpsideDown(.when(deviceFamilies: [.pad]))
+            ],
+            capabilities: [
+                .camera(purposeString: "FocusAR uses the camera to provide augmented reality experiences for clutter detection and organization.")
             ]
         )
     ],
@@ -39,7 +42,8 @@ let package = Package(
             name: "AppModule",
             path: ".",
             resources: [
-                .copy("Resources/ClutterClassifier.mlmodelc")
+                .copy("Resources/ClutterClassifier.mlmodelc"),
+                .copy("Auxiliary/Sounds/calm_sound.aac")
             ]
         )
     ],

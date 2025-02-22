@@ -20,14 +20,14 @@ class ClutterDetector {
         }
     }
     
-    func detectClutter(in frame: ARFrame) {
+    /// Detect clutter in a pixel buffer (extracted from ARFrame).
+    func detectClutter(in pixelBuffer: CVPixelBuffer) {
         if let vnModel = vnModel {
             // Use the Core ML model for clutter detection.
             let request = VNCoreMLRequest(model: vnModel) { request, error in
                 guard let results = request.results as? [VNClassificationObservation],
                       let topResult = results.first else { return }
                 
-                // Extract values to avoid data races
                 let identifier = topResult.identifier
                 let confidence = topResult.confidence
                 
@@ -39,13 +39,13 @@ class ClutterDetector {
                 }
             }
             
-            let handler = VNImageRequestHandler(cvPixelBuffer: frame.capturedImage, options: [:])
+            let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
             try? handler.perform([request])
         } else {
             // Fallback: Use a saliency request for basic image analysis.
             let request = VNGenerateObjectnessBasedSaliencyImageRequest()
             do {
-                let handler = VNImageRequestHandler(cvPixelBuffer: frame.capturedImage, options: [:])
+                let handler = VNImageRequestHandler(cvPixelBuffer: pixelBuffer, options: [:])
                 try handler.perform([request])
                 
                 if let result = request.results?.first as? VNSaliencyImageObservation,
