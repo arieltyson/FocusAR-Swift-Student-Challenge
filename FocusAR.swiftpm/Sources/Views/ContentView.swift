@@ -1,9 +1,8 @@
 import SwiftUI
 
 struct ContentView: View {
-
     @StateObject private var arSession = ARSessionManager()
-        
+    
     var body: some View {
         ZStack {
             ARViewContainer(arSession: arSession)
@@ -32,21 +31,25 @@ struct ContentView: View {
     }
 }
 
-struct ProgressBar: View {
-    let progress: Double
-    
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                Rectangle()
-                    .foregroundColor(.gray.opacity(0.3))
-                
-                Rectangle()
-                    .foregroundColor(.blue)
-                    .frame(width: geometry.size.width * progress)
-                    .animation(.linear(duration: 0.2), value: progress)
-            }
-            .cornerRadius(4)
-        }
+// MARK: - Previews
+#if DEBUG
+struct ContentView_Previews: PreviewProvider {
+    static var previews: some View {
+        // Mock session with artificial progress
+        let mockSession = ARSessionManager()
+        mockSession.isSessionReady = true
+        mockSession.sessionProgress = 0.6
+        
+        return ContentView()
+            .environmentObject(mockSession)
+            .previewDevice("iPad Pro (12.9-inch) (6th generation)")
     }
 }
+
+#Preview("AR Session Active") {
+    let mockSession = ARSessionManager()
+    mockSession.isSessionReady = true
+    return ContentView()
+        .environmentObject(mockSession)
+}
+#endif
