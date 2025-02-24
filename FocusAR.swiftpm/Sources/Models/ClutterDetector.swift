@@ -7,7 +7,7 @@ class ClutterDetector {
     
     init() {
         // Load the compiled model from the package's resources.
-        guard let modelURL = Bundle.module.url(forResource: "ClutterClassifier", withExtension: "mlmodelc") else {
+        guard let modelURL = Bundle.module.url(forResource: "CustomClutter", withExtension: "mlmodelc") else {
             print("Could not find compiled ClutterClassifier.mlmodelc in resources. Falling back to saliency detection.")
             return
         }

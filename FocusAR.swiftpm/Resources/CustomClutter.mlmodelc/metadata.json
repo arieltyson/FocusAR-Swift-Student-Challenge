@@ -64,12 +64,12 @@
       "cluttered",
       "organized"
     ],
-    "generatedClassName" : "Custom",
+    "generatedClassName" : "CustomClutter",
     "userDefinedMetadata" : {
-      "com.apple.createml.version" : "15.3.1",
       "com.apple.createml.app.tag" : "150.3",
-      "com.apple.createml.app.version" : "6.1",
-      "com.apple.coreml.model.preview.type" : "imageClassifier"
+      "com.apple.createml.version" : "15.3.1",
+      "com.apple.coreml.model.preview.type" : "imageClassifier",
+      "com.apple.createml.app.version" : "6.1"
     },
     "method" : "predict"
   }

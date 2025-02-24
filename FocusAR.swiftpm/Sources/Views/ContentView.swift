@@ -35,7 +35,6 @@ struct ContentView: View {
 #if DEBUG
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
-        // Mock session with artificial progress
         let mockSession = ARSessionManager()
         mockSession.isSessionReady = true
         mockSession.sessionProgress = 0.6
