@@ -42,7 +42,7 @@ let package = Package(
             name: "AppModule",
             path: ".",
             resources: [
-                .copy("Resources/ClutterClassifier.mlmodelc"),
+                .copy("Resources/Custom.mlmodelc"),
                 .copy("Auxiliary/Sounds/calm_sound.aac")
             ]
         )
