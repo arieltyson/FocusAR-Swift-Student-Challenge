@@ -1,7 +1,6 @@
 <div align="center">
 
-# Focus AR 🥇 (Apple Swift Student Challenge 2025 Winner 🏆
-)
+# Focus AR 🥇 (Apple Swift Student Challenge 2025 Winner 🏆)
 
 ## App Store  : Coming Soon...
 
