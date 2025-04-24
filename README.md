@@ -13,22 +13,6 @@
 
 "FocusAR is more than an app. It is a proof of concept that code can be compassionate. By transforming AR and ML into tools for mindfulness, this project invites users to find calm in chaos, one interactive moment at a time."
 
-## Demo : Coming Soon...
-
-## Screenshots : Coming Soon...
-
-<div style="display: flex; justify-content: center; align-items: center;">
-    <kbd>
-        <img src="" alt="" width="250" height="500">
-    </kbd>
-    <kbd>
-        <img src="" alt="" width="250" height="500">
-    </kbd>
-    <kbd>
-        <img src="" alt="" width="250" height="500">
-    </kbd>
-</div>
-
 ## Technologies Used 💻
 
 This project leverages the powerful combination of Swift and SwiftUI, along with other native iOS APIs.
