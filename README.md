@@ -2,13 +2,6 @@
 
 # Focus AR 🥇 (Apple Swift Student Challenge 2025 Winner 🏆)
 
-## App Store  : Coming Soon...
-
-<kbd>
-    <img src="https://github.com/user-attachments/assets/ead85561-4b6a-4ee2-afe2-e3ce950ef677" alt="FocusARIcon" width="400" height="400">
-</kbd>
-
-
 ## Project Description 🎨
 
 "FocusAR is more than an app. It is a proof of concept that code can be compassionate. By transforming AR and ML into tools for mindfulness, this project invites users to find calm in chaos, one interactive moment at a time."
