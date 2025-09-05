@@ -23,3 +23,102 @@ FocusAR.swiftpm/**/xcschememanagement.plist
 FocusAR.swiftpm/Package.resolved
 
 FocusAR.swiftpm/xcode/package.xcworkspace/
+
+################################################################################
+# macOS
+################################################################################
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+################################################################################
+# Xcode (projects & user settings)
+################################################################################
+# User-specific & transient files
+xcuserdata/
+*.xcuserstate
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Derived/build output
+DerivedData/
+build/
+Build/
+
+# Playgrounds editor metadata (safe to ignore)
+timeline.xctimeline
+playground.xcworkspace
+
+################################################################################
+# Swift Playgrounds app folder
+################################################################################
+# IMPORTANT: Do NOT ignore your app folder "FocusAR.swiftpm".
+# (We only ignore the hidden SPM state dir named exactly ".swiftpm" below.)
+
+################################################################################
+# Swift Package Manager
+################################################################################
+# Local build artifacts for packages
+.build/
+
+# SPM per-project state (safe to ignore)
+.swiftpm/
+
+# Keep dependency lockfile for reproducible builds
+!**/Package.resolved
+
+################################################################################
+# Core ML
+################################################################################
+# Ignore compiled model artifacts; commit the .mlmodel source instead.
+# (Xcode compiles .mlmodel → .mlmodelc during build.)
+*.mlmodelc/
+
+################################################################################
+# Archives / Products / Symbols
+################################################################################
+*.ipa
+*.xcarchive
+*.dSYM
+*.dSYM.zip
+
+################################################################################
+# Signing / Certificates (never commit secrets)
+################################################################################
+*.mobileprovision
+*.provisionprofile
+*.cer
+*.der
+*.p12
+*.key
+
+################################################################################
+# Fastlane (generated outputs)
+################################################################################
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+################################################################################
+# Package Managers you might adopt later (optional; harmless if unused)
+################################################################################
+# CocoaPods
+Pods/
+!Podfile.lock
+
+# Carthage
+Carthage/Build/
+Carthage/Checkouts/
+Carthage/DerivedData/
+
+################################################################################
+# Editors & tooling (optional)
+################################################################################
+.vscode/
+.idea/

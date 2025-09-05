@@ -16,13 +16,15 @@ struct OnboardingView: View {
                 hasOnboarded = true
             } else {
                 // Move to the next onboarding page.
-                if let next = OnboardingPosition.allCases.first(where: { $0.rawValue == position.rawValue + 1 }) {
+                if let next = OnboardingPosition.allCases.first(where: {
+                    $0.rawValue == position.rawValue + 1
+                }) {
                     position = next
                 }
             }
         }
     }
-    
+
     var body: some View {
         NavigationView {
             ZStack {
@@ -41,13 +43,13 @@ struct OnboardingView: View {
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
                     // Disable swipe to force button progression.
                     .disabled(true)
-                    
+
                     Button {
                         changePosition()
                     } label: {
                         Text(position == .jumpIn ? "Jump In!" : "Next")
                             .font(.system(size: 40, weight: .bold))
-                            .foregroundColor(.white) // Button text in white.
+                            .foregroundColor(.white)  // Button text in white.
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(Color.mint)
@@ -62,15 +64,15 @@ struct OnboardingView: View {
         }
         .navigationViewStyle(StackNavigationViewStyle())
     }
-    
+
     // MARK: - Onboarding Pages
-    
+
     var welcomePage: some View {
         VStack(spacing: 20) {
             Spacer()
             Text("FocusAR")
                 .font(.system(size: 88, weight: .bold))
-                .foregroundColor(.cyan) // Primary accent color.
+                .foregroundColor(.cyan)  // Primary accent color.
             Text("Transform chaos into calm, one tap at a time.")
                 .font(.system(size: 38, weight: .bold))
                 .foregroundColor(.white)
@@ -84,7 +86,7 @@ struct OnboardingView: View {
         }
         .padding()
     }
-    
+
     var overviewPage: some View {
         VStack(spacing: 20) {
             Image(systemName: "camera.viewfinder")
@@ -95,15 +97,17 @@ struct OnboardingView: View {
             Text("How It Works")
                 .font(.system(size: 30, weight: .bold))
                 .foregroundColor(.mint)
-            Text("FocusAR uses your device’s camera to detect visual clutter in real time. By analyzing the scene with on‑device computer vision, it identifies chaotic areas and prepares them for transformation.")
-                .font(.system(size: 28))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            Text(
+                "FocusAR uses your device’s camera to detect visual clutter in real time. By analyzing the scene with on‑device computer vision, it identifies chaotic areas and prepares them for transformation."
+            )
+            .font(.system(size: 28))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
         }
         .padding()
     }
-    
+
     var technologyPage: some View {
         VStack(spacing: 20) {
             Image(systemName: "brain.head.profile")
@@ -114,25 +118,29 @@ struct OnboardingView: View {
             Text("Intelligent & Immersive")
                 .font(.system(size: 30, weight: .bold))
                 .foregroundColor(.teal)
-            Text("FocusAR leverages cutting‑edge machine learning and augmented reality frameworks—including Core ML, Vision, ARKit, and RealityKit—to overlay calming animations and haptic feedback onto your environment. This intelligent integration transforms clutter into a serene, organized space.")
-                .font(.system(size: 18))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            Text(
+                "FocusAR leverages cutting‑edge machine learning and augmented reality frameworks—including Core ML, Vision, ARKit, and RealityKit—to overlay calming animations and haptic feedback onto your environment. This intelligent integration transforms clutter into a serene, organized space."
+            )
+            .font(.system(size: 18))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
         }
         .padding()
     }
-    
+
     var jumpInPage: some View {
         VStack(spacing: 20) {
             Text("You're All Set!")
                 .font(.system(size: 40, weight: .bold))
                 .foregroundColor(.indigo)
-            Text("Now you're ready to experience the magic of FocusAR. Tap 'Jump In!' to begin your journey towards a calmer, more organized space.")
-                .font(.system(size: 31))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            Text(
+                "Now you're ready to experience the magic of FocusAR. Tap 'Jump In!' to begin your journey towards a calmer, more organized space."
+            )
+            .font(.system(size: 31))
+            .foregroundColor(.white)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
             Image(systemName: "sparkles")
                 .resizable()
                 .scaledToFit()

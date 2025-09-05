@@ -25,11 +25,13 @@ class ARSessionManager: NSObject, ObservableObject {
 
     func setupARView(_ view: ARView) {
         arView = view
-        
+
         guard !ProcessInfo.processInfo.isPreview else {
             // Add mock content for SwiftUI previews
-            let sphere = ModelEntity(mesh: .generateSphere(radius: 0.1),
-                                     materials: [SimpleMaterial(color: .blue, isMetallic: false)])
+            let sphere = ModelEntity(
+                mesh: .generateSphere(radius: 0.1),
+                materials: [SimpleMaterial(color: .blue, isMetallic: false)]
+            )
             let anchor = AnchorEntity(world: [0, 0, -0.5])
             anchor.addChild(sphere)
             view.scene.addAnchor(anchor)
@@ -40,14 +42,15 @@ class ARSessionManager: NSObject, ObservableObject {
         config.planeDetection = [.horizontal]
         view.session.delegate = self
         view.session.run(config)
-        
+
         DispatchQueue.main.async { [weak self] in
             self?.isSessionReady = true
         }
     }
 
     private func setupProgressTimer() {
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
+        let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) {
+            [weak self] _ in
             Task { @MainActor in
                 guard let self = self else { return }
                 if self.sessionProgress < 1.0 {
@@ -68,11 +71,17 @@ class ARSessionManager: NSObject, ObservableObject {
 
     func triggerARFeedback(at point: CGPoint) {
         guard let arView = arView else { return }
-        if let raycastResult = arView.raycast(from: point, allowing: .estimatedPlane, alignment: .horizontal).first {
+        if let raycastResult = arView.raycast(
+            from: point,
+            allowing: .estimatedPlane,
+            alignment: .horizontal
+        ).first {
             let worldTransform = raycastResult.worldTransform
-            let position = SIMD3<Float>(worldTransform.columns.3.x,
-                                        worldTransform.columns.3.y,
-                                        worldTransform.columns.3.z)
+            let position = SIMD3<Float>(
+                worldTransform.columns.3.x,
+                worldTransform.columns.3.y,
+                worldTransform.columns.3.z
+            )
 
             let sphere = ModelEntity(
                 mesh: .generateSphere(radius: 0.05),
@@ -85,9 +94,15 @@ class ARSessionManager: NSObject, ObservableObject {
             arView.scene.addAnchor(anchor)
 
             let scaleUp = SIMD3<Float>(repeating: 2.0)
-            sphere.move(to: Transform(scale: scaleUp, rotation: sphere.transform.rotation, translation: sphere.position),
-                        relativeTo: sphere.parent,
-                        duration: 0.5)
+            sphere.move(
+                to: Transform(
+                    scale: scaleUp,
+                    rotation: sphere.transform.rotation,
+                    translation: sphere.position
+                ),
+                relativeTo: sphere.parent,
+                duration: 0.5
+            )
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                 anchor.removeFromParent()
