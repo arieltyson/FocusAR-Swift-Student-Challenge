@@ -1,0 +1,105 @@
+################################################################################
+# macOS
+################################################################################
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+################################################################################
+# Xcode (project + user settings)
+################################################################################
+# Keep the project files; ignore only user state
+xcuserdata/
+*.xcuserstate
+*.moved-aside
+*.xccheckout
+*.xcscmblueprint
+
+# Derived/build output
+DerivedData/
+build/
+Build/
+*.xcresult
+
+################################################################################
+# Swift Playgrounds app folder
+################################################################################
+# Do NOT ignore the app folder itself (FocusAR.swiftpm), just its caches
+FocusAR.swiftpm/.swiftpm/
+FocusAR.swiftpm/.swiftpm/derived_data/
+FocusAR.swiftpm/.swiftpm/build/
+FocusAR.swiftpm/.swiftpm/*.xcuserstate
+FocusAR.swiftpm/.swiftpm/*.playgrounddata
+FocusAR.swiftpm/*.log
+FocusAR.swiftpm/*.tmp
+# Playgrounds editor metadata
+timeline.xctimeline
+playground.xcworkspace
+
+################################################################################
+# Swift Package Manager
+################################################################################
+.build/
+.swiftpm/
+
+# Keep dependency lockfile for reproducible builds
+!**/Package.resolved
+
+################################################################################
+# Core ML
+################################################################################
+# Ignore compiled model bundles by default…
+*.mlmodelc/
+
+# …but keep the compiled model we ship in the app bundle:
+# (adjust path if yours differs)
+!FocusAR/FocusAR/Resources/CustomClutter.mlmodelc/
+!FocusAR/FocusAR/Resources/CustomClutter.mlmodelc/**
+
+################################################################################
+# Archives / Products / Symbols
+################################################################################
+*.ipa
+*.xcarchive
+*.dSYM
+*.dSYM.zip
+
+################################################################################
+# Signing / Certificates (never commit secrets)
+################################################################################
+*.mobileprovision
+*.provisionprofile
+*.cer
+*.der
+*.p12
+*.key
+
+################################################################################
+# Fastlane (generated outputs)
+################################################################################
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output/
+
+################################################################################
+# Optional package managers (harmless if unused)
+################################################################################
+# CocoaPods
+Pods/
+!Podfile.lock
+
+# Carthage
+Carthage/Build/
+Carthage/Checkouts/
+Carthage/DerivedData/
+
+################################################################################
+# Editors & tooling (optional)
+################################################################################
+.vscode/
+.idea/
