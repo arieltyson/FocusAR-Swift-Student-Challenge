@@ -1,158 +1,163 @@
 import SwiftUI
 
-private enum OnboardingPosition: Int, CaseIterable, Identifiable {
-    case welcome, overview, technology, jumpIn
-    var id: Int { self.rawValue }
-}
-
 struct OnboardingView: View {
-    @State private var position: OnboardingPosition = .welcome
-    @AppStorage("hasOnboarded") var hasOnboarded: Bool = false
+    /// Called when the user finishes or skips onboarding.
+    var onFinished: () -> Void
 
-    func changePosition() {
-        withAnimation {
-            if position == .jumpIn {
-                // Mark onboarding complete and transition to main app.
-                hasOnboarded = true
-            } else {
-                // Move to the next onboarding page.
-                if let next = OnboardingPosition.allCases.first(where: {
-                    $0.rawValue == position.rawValue + 1
-                }) {
-                    position = next
-                }
-            }
-        }
-    }
+    @State private var index = 0
+    private let pages = OnboardingPage.pages
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
-                VStack {
-                    TabView(selection: $position) {
-                        welcomePage
-                            .tag(OnboardingPosition.welcome)
-                        overviewPage
-                            .tag(OnboardingPosition.overview)
-                        technologyPage
-                            .tag(OnboardingPosition.technology)
-                        jumpInPage
-                            .tag(OnboardingPosition.jumpIn)
+
+                VStack(spacing: 24) {
+                    TabView(selection: $index) {
+                        ForEach(Array(pages.enumerated()), id: \.offset) {
+                            i,
+                            page in
+                            OnboardingCard(page: page)
+                                .tag(i)
+                                .padding(.horizontal)
+                                .accessibilityElement(children: .contain)
+                        }
                     }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
-                    // Disable swipe to force button progression.
-                    .disabled(true)
+                    .tabViewStyle(.page(indexDisplayMode: .always))
+                    .indexViewStyle(.page(backgroundDisplayMode: .always))
 
                     Button {
-                        changePosition()
+                        withAnimation(.easeInOut) {
+                            if index < pages.count - 1 {
+                                index += 1
+                            } else {
+                                HapticsManager.shared.playGentlePulse()
+                                onFinished()
+                            }
+                        }
                     } label: {
-                        Text(position == .jumpIn ? "Jump In!" : "Next")
-                            .font(.system(size: 40, weight: .bold))
-                            .foregroundColor(.white)  // Button text in white.
+                        Text(index == pages.count - 1 ? "Jump In!" : "Next")
+                            .font(.title2.weight(.bold))
                             .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color.mint)
-                            .cornerRadius(30)
-                            .padding(.horizontal, 40)
-                            .padding(.bottom, 40)
+                            .padding(.vertical, 18)
                     }
+                    .buttonStyle(PrimaryShinyButtonStyle())
+                    .padding(.horizontal)
+                    .accessibilityHint(
+                        index == pages.count - 1
+                            ? "Finish onboarding" : "Go to the next page"
+                    )
+
+                    Spacer(minLength: 8)
                 }
             }
-            .navigationBarHidden(true)
-            .statusBarHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Skip") { onFinished() }
+                        .font(.body.weight(.semibold))
+                        .accessibilityHint(
+                            "Finish onboarding and continue to Home"
+                        )
+                }
+            }
+            .navigationBarTitleDisplayMode(.inline)
         }
-        .navigationViewStyle(StackNavigationViewStyle())
-    }
-
-    // MARK: - Onboarding Pages
-
-    var welcomePage: some View {
-        VStack(spacing: 20) {
-            Spacer()
-            Text("FocusAR")
-                .font(.system(size: 88, weight: .bold))
-                .foregroundColor(.cyan)  // Primary accent color.
-            Text("Transform chaos into calm, one tap at a time.")
-                .font(.system(size: 38, weight: .bold))
-                .foregroundColor(.white)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-            Spacer()
-            Text("Tap next to learn more")
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding(.bottom, 70)
-        }
-        .padding()
-    }
-
-    var overviewPage: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "camera.viewfinder")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 100, height: 100)
-                .foregroundColor(.white)
-            Text("How It Works")
-                .font(.system(size: 30, weight: .bold))
-                .foregroundColor(.mint)
-            Text(
-                "FocusAR uses your device’s camera to detect visual clutter in real time. By analyzing the scene with on‑device computer vision, it identifies chaotic areas and prepares them for transformation."
-            )
-            .font(.system(size: 28))
-            .foregroundColor(.white)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal)
-        }
-        .padding()
-    }
-
-    var technologyPage: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "brain.head.profile")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 100, height: 100)
-                .foregroundColor(.green)
-            Text("Intelligent & Immersive")
-                .font(.system(size: 30, weight: .bold))
-                .foregroundColor(.teal)
-            Text(
-                "FocusAR leverages cutting‑edge machine learning and augmented reality frameworks—including Core ML, Vision, ARKit, and RealityKit—to overlay calming animations and haptic feedback onto your environment. This intelligent integration transforms clutter into a serene, organized space."
-            )
-            .font(.system(size: 18))
-            .foregroundColor(.white)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal)
-        }
-        .padding()
-    }
-
-    var jumpInPage: some View {
-        VStack(spacing: 20) {
-            Text("You're All Set!")
-                .font(.system(size: 40, weight: .bold))
-                .foregroundColor(.indigo)
-            Text(
-                "Now you're ready to experience the magic of FocusAR. Tap 'Jump In!' to begin your journey towards a calmer, more organized space."
-            )
-            .font(.system(size: 31))
-            .foregroundColor(.white)
-            .multilineTextAlignment(.center)
-            .padding(.horizontal)
-            Image(systemName: "sparkles")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 80, height: 80)
-                .foregroundColor(.pink)
-        }
-        .padding()
     }
 }
 
-struct OnboardingView_Previews: PreviewProvider {
-    static var previews: some View {
-        OnboardingView()
+// MARK: - Components
+
+private struct OnboardingCard: View {
+    let page: OnboardingPage
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                // Symbol hero
+                Image(systemName: page.symbol)
+                    .font(.system(size: 72, weight: .semibold))
+                    .symbolRenderingMode(.palette)
+                    .foregroundStyle(page.accent, .white.opacity(0.9))
+                    .padding(.top, 40)
+                    .accessibilityHidden(true)
+
+                VStack(spacing: 10) {
+                    Text(page.title)
+                        .font(.largeTitle.weight(.bold))
+                        .foregroundStyle(page.titleColor)
+                        .multilineTextAlignment(.center)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Text(page.subtitle)
+                        .font(.title3)
+                        .foregroundStyle(.white)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 8)
+                        .minimumScaleFactor(0.8)
+                }
+
+                if let footnote = page.footnote {
+                    Text(footnote)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
+                Spacer(minLength: 12)
+            }
+            .frame(maxWidth: 540)  // readable width on iPad too
+            .padding(.bottom, 24)
+        }
     }
+}
+
+private struct OnboardingPage: Identifiable {
+    let id = UUID()
+    let title: String
+    let subtitle: String
+    let footnote: String?
+    let symbol: String
+    let accent: Color
+    let titleColor: Color
+
+    static let pages: [OnboardingPage] = [
+        .init(
+            title: "FocusAR",
+            subtitle: "Transform chaos into calm, one tap at a time.",
+            footnote:
+                "Built with on-device intelligence. No media leaves your iPhone.",
+            symbol: "sparkles",
+            accent: .pink,
+            titleColor: .cyan
+        ),
+        .init(
+            title: "How It Works",
+            subtitle:
+                "FocusAR analyzes your space in real time and highlights cluttered areas so you can act with intention.",
+            footnote: nil,
+            symbol: "camera.viewfinder",
+            accent: .mint,
+            titleColor: .mint
+        ),
+        .init(
+            title: "Intelligent & Immersive",
+            subtitle:
+                "Powered by Core ML, Vision, ARKit, RealityKit—paired with gentle haptics and calming audio feedback.",
+            footnote: nil,
+            symbol: "brain.head.profile",
+            accent: .green,
+            titleColor: .teal
+        ),
+        .init(
+            title: "You're All Set",
+            subtitle:
+                "Begin a 3-minute session and tap cluttered areas to organize them.",
+            footnote:
+                "You can revisit these tips anytime from Home → How it works.",
+            symbol: "hand.tap",
+            accent: .cyan,
+            titleColor: .indigo
+        ),
+    ]
 }
