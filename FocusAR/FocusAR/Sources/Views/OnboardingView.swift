@@ -145,7 +145,7 @@ private struct VoicePhrasesView: View {
                 .foregroundStyle(.mint)
             ForEach(phrases, id: \.self) { text in
                 HStack(spacing: 8) {
-                    Image(systemName: "siri.waveform")
+                    Image(systemName: "mic.circle.fill")
                         .imageScale(.medium)
                         .symbolRenderingMode(.hierarchical)
                         .foregroundStyle(.cyan)
@@ -237,20 +237,39 @@ private struct OnboardingPage: Identifiable, Hashable {
             voicePhrases: nil
         ),
         .init(
+            title: "Voice & Intelligence",
+            subtitle:
+                "On-device Speech transcribes your voice. Apple’s Foundation Models classify phrases and map them to actions—private and fast.",
+            footnote:
+                "You can grant speech permission the first time you enable the mic. Siri Shortcuts use App Intents to start sessions with parameters.",
+            symbol: "brain.head.profile",
+            accent: .teal,
+            titleColor: .teal,
+            bullets: [
+                "Speech recognition runs entirely on your device",
+                "Foundation Models interpret intent (end, mute, unmute)",
+                "Siri Shortcuts start sessions via App Intents",
+            ],
+            voicePhrases: [
+                "Start a focus session in FocusAR",
+                "End session",
+                "Mute sound",
+                "Unmute sound",
+            ]
+        ),
+        .init(
             title: "Hands-Free Control",
             subtitle:
-                "Use Siri to start a session or the in-app mic to control it—fully on device.",
-            footnote:
-                "You can grant speech permission when you first use the mic.",
-            symbol: "siri.waveform",
+                "Start sessions with Siri or tap the mic to control them during AR. Everything stays on device for privacy.",
+            footnote: "Tip: If you prefer silence, switch to Mute anytime.",
+            symbol: "mic.circle.fill",
             accent: .cyan,
             titleColor: .teal,
             bullets: [
                 "Say “Start a focus session in FocusAR”",
-                "Tap the mic to use in-session commands",
+                "Use the mic to end or toggle sound during a session",
             ],
             voicePhrases: [
-                "Start a focus session in FocusAR",
                 "End session",
                 "Mute sound",
                 "Unmute sound",
