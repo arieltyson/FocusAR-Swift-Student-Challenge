@@ -1,6 +1,10 @@
 import AVFoundation
 import Speech
 
+#if canImport(FoundationModels)
+    import FoundationModels
+#endif
+
 @MainActor
 final class SpeechCommandRecognizer: ObservableObject {
     @Published private(set) var isListening = false
@@ -9,6 +13,11 @@ final class SpeechCommandRecognizer: ObservableObject {
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
 
+    // Debounce / de-dupe
+    private var debounceTask: Task<Void, Never>?
+    private var lastEvaluatedText: String = ""
+    private var lastCommandTime: Date = .distantPast
+
     enum Command { case endSession, muteAudio, unmuteAudio, unknown }
     enum SpeechError: Error {
         case recognizerUnavailable
@@ -16,57 +25,50 @@ final class SpeechCommandRecognizer: ObservableObject {
         case micNotAuthorized
     }
 
+    // MARK: - Foundation Models (on-device)
+    #if canImport(FoundationModels)
+        private lazy var fmSession: LanguageModelSession = {
+            let model = SystemLanguageModel(useCase: .contentTagging)
+            return LanguageModelSession(model: model)
+        }()
+    #endif
+
     // MARK: - Permissions
 
     private func requestSpeechAuth() async
         -> SFSpeechRecognizerAuthorizationStatus
     {
         await withCheckedContinuation { cont in
-            SFSpeechRecognizer.requestAuthorization { status in
-                cont.resume(returning: status)
+            SFSpeechRecognizer.requestAuthorization {
+                cont.resume(returning: $0)
             }
         }
     }
 
     private func requestMicPermission() async -> Bool {
-        if #available(iOS 17.0, *) {
-            // New API on iOS 17+: AVAudioApplication
-            return await withCheckedContinuation { cont in
-                AVAudioApplication.requestRecordPermission { granted in
-                    cont.resume(returning: granted)
-                }
-            }
-        } else {
-            // Legacy API for iOS 16 and earlier
-            return await withCheckedContinuation { cont in
-                AVAudioSession.sharedInstance().requestRecordPermission {
-                    granted in
-                    cont.resume(returning: granted)
-                }
+        await withCheckedContinuation { cont in
+            AVAudioApplication.requestRecordPermission {
+                cont.resume(returning: $0)
             }
         }
     }
 
     func requestAuthorization() async throws {
-        // Speech recognition permission
         let speechStatus = await requestSpeechAuth()
         guard speechStatus == .authorized else {
             throw SpeechError.speechNotAuthorized(speechStatus)
         }
 
-        // Microphone permission
         let micGranted = await requestMicPermission()
-        guard micGranted else {
-            throw SpeechError.micNotAuthorized
-        }
+        guard micGranted else { throw SpeechError.micNotAuthorized }
 
-        // Configure audio session for recognition
-        try AVAudioSession.sharedInstance().setCategory(
-            .record,
+        let session = AVAudioSession.sharedInstance()
+        try session.setCategory(
+            .playAndRecord,
             mode: .measurement,
             options: [.duckOthers]
         )
-        try AVAudioSession.sharedInstance().setActive(true)
+        try session.setActive(true)
     }
 
     // MARK: - Lifecycle
@@ -99,34 +101,80 @@ final class SpeechCommandRecognizer: ObservableObject {
         task = recognizer?.recognitionTask(with: req) {
             [weak self] result, error in
             guard let self else { return }
+
             if let result {
+                // Always consider partials; we'll debounce before firing.
                 let text = result.bestTranscription.formattedString.lowercased()
-                if let cmd = self.classify(text: text) { handler(cmd) }
+                self.scheduleClassification(for: text, handler: handler)
+
+                // If the recognizer naturally ends, stop our engine.
+                if result.isFinal {
+                    self.stop()
+                }
             }
-            if error != nil || (result?.isFinal ?? false) {
+
+            if error != nil {
                 self.stop()
             }
         }
     }
 
     func stop() {
-        guard isListening else { return }
+        debounceTask?.cancel()
+        debounceTask = nil
+
         task?.cancel()
         task = nil
+
         request?.endAudio()
         request = nil
+
         audio.inputNode.removeTap(onBus: 0)
         audio.stop()
         isListening = false
+
         try? AVAudioSession.sharedInstance().setActive(
             false,
             options: .notifyOthersOnDeactivation
         )
     }
 
-    // MARK: - Minimal on-device intent matching
+    // MARK: - Debounced classification
 
-    private func classify(text: String) -> Command? {
+    private func scheduleClassification(
+        for text: String,
+        handler: @escaping (Command) -> Void
+    ) {
+        lastEvaluatedText = text
+        debounceTask?.cancel()
+        debounceTask = Task { @MainActor in
+            // Small delay lets utterances settle (≈phrase boundary)
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            guard text == lastEvaluatedText else { return }  // new text arrived; skip
+
+            if let cmd = await classifyCommand(from: text), cmd != .unknown {
+                // Simple de-dupe so the same phrase doesn’t fire repeatedly
+                let now = Date()
+                if now.timeIntervalSince(lastCommandTime) > 1.2 {
+                    lastCommandTime = now
+                    handler(cmd)
+                }
+            }
+        }
+    }
+
+    // MARK: - Classification
+
+    private func classifyCommand(from text: String) async -> Command? {
+        #if canImport(FoundationModels)
+            if let fmCmd = await classifyWithFoundationModels(text) {
+                return fmCmd
+            }
+        #endif
+        return classifyRuleBased(text: text)
+    }
+
+    private func classifyRuleBased(text: String) -> Command {
         if text.contains("end session") || text.contains("stop")
             || text.contains("i'm done")
         {
@@ -138,4 +186,41 @@ final class SpeechCommandRecognizer: ObservableObject {
         }
         return .unknown
     }
+
+    #if canImport(FoundationModels)
+        @Generable
+        private struct CommandDecision: Equatable {
+            @Guide(
+                description: "One of: end_session, mute, unmute, none",
+                .anyOf(["end_session", "mute", "unmute", "none"])
+            )
+            var intent: String
+        }
+
+        private func classifyWithFoundationModels(_ text: String) async
+            -> Command?
+        {
+            do {
+                let response = try await fmSession.respond(
+                    to: """
+                        Classify the user’s voice command into one of: end_session, mute, unmute, none.
+                        Return only the 'intent' field.
+                        Command: "\(text)"
+                        """,
+                    generating: CommandDecision.self,
+                    includeSchemaInPrompt: true,
+                    options: GenerationOptions(temperature: 0)
+                )
+
+                switch response.content.intent {
+                case "end_session": return .endSession
+                case "mute": return .muteAudio
+                case "unmute": return .unmuteAudio
+                default: return .unknown
+                }
+            } catch {
+                return nil
+            }
+        }
+    #endif
 }
