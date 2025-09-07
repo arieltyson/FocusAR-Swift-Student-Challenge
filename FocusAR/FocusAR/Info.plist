@@ -2,11 +2,27 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSCameraUsageDescription</key>
-	<string>FocusAR uses the camera to analyze your space and overlay AR guidance for clutter detection and organization.</string>
-	<key>UIRequiredDeviceCapabilities</key>
-	<array>
-		<string>arkit</string>
-	</array>
+    <key>NSCameraUsageDescription</key>
+    <string>FocusAR uses the camera to analyze your space and overlay AR guidance for clutter detection and organization.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>FocusAR uses the microphone for voice commands</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>FocusAR transcribes your voice on device to control sessions</string>
+
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>arkit</string>
+    </array>
+
+    <!-- Custom URL scheme for Siri/Shortcuts deep links: focusar://start?minutes=5&mode=calming -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>focusar</string>
+            </array>
+        </dict>
+    </array>
 </dict>
 </plist>

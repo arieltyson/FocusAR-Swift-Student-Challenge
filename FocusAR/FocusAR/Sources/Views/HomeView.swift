@@ -4,6 +4,10 @@ struct HomeView: View {
     @State private var presentSession = false
     @State private var showOnboarding = false
 
+    // Parameters passed from Siri/Shortcuts deep links
+    @State private var targetMinutes: Int?
+    @State private var targetMode: FocusMode?
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -43,7 +47,7 @@ struct HomeView: View {
                             .minimumScaleFactor(0.8)
                         }
 
-                        // Benefit card
+                        // Benefit card (open-ended sessions)
                         GroupBox {
                             HStack(spacing: 12) {
                                 Image(systemName: "sparkles")
@@ -68,6 +72,9 @@ struct HomeView: View {
                         // Primary CTA
                         Button {
                             HapticsManager.shared.playGentlePulse()
+                            // Clear any Siri-provided targets for manual starts
+                            targetMinutes = nil
+                            targetMode = nil
                             presentSession = true
                         } label: {
                             Label(
@@ -108,8 +115,39 @@ struct HomeView: View {
                     }
                     .padding(.horizontal)
                     .foregroundStyle(.secondary)
-                    .safeAreaPadding(.bottom)  // keep above home indicator
-                    .padding(.bottom, 8)  // small extra breathing room
+                    .safeAreaPadding(.bottom)  // keep above the Home indicator
+                    .padding(.bottom, 8)  // extra breathing room
+                }
+            }
+            // Deep-link handling from App Intents / Shortcuts
+            .onOpenURL { url in
+                guard url.scheme == "focusar" else { return }
+                if url.host == "start" {
+                    let comps = URLComponents(
+                        url: url,
+                        resolvingAgainstBaseURL: false
+                    )
+                    if let mins = comps?.queryItems?.first(where: {
+                        $0.name == "minutes"
+                    })?.value,
+                        let m = Int(mins), m > 0
+                    {
+                        targetMinutes = m
+                    } else {
+                        targetMinutes = nil
+                    }
+                    if let modeStr = comps?.queryItems?.first(where: {
+                        $0.name == "mode"
+                    })?.value,
+                        let parsed = FocusMode(rawValue: modeStr)
+                    {
+                        targetMode = parsed
+                    } else {
+                        targetMode = nil
+                    }
+                    presentSession = true
+                } else if url.host == "end" {
+                    presentSession = false
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -121,10 +159,14 @@ struct HomeView: View {
                 .interactiveDismissDisabled()
             }
             .fullScreenCover(isPresented: $presentSession) {
-                ContentView(onEnd: {
-                    HapticsManager.shared.playGentlePulse()
-                    presentSession = false
-                })
+                ContentView(
+                    onEnd: {
+                        HapticsManager.shared.playGentlePulse()
+                        presentSession = false
+                    },
+                    targetMinutes: targetMinutes,
+                    mode: targetMode
+                )
                 .ignoresSafeArea()
             }
         }
@@ -161,7 +203,7 @@ struct PrimaryShinyButtonStyle: ButtonStyle {
     }
 }
 
-// Simple, explicit privacy page
+// Simple, explicit privacy page (keeps Review happy)
 private struct PrivacyView: View {
     var body: some View {
         List {

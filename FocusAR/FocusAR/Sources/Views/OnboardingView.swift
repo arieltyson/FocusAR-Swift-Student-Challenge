@@ -41,7 +41,7 @@ struct OnboardingView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
                     }
-                    .buttonStyle(PrimaryShinyButtonStyle())
+                    .buttonStyle(PrimaryOnboardingButtonStyle())
                     .padding(.horizontal)
                     .accessibilityHint(
                         index == pages.count - 1
@@ -96,6 +96,30 @@ private struct OnboardingCard: View {
                         .minimumScaleFactor(0.8)
                 }
 
+                if let bullets = page.bullets, !bullets.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ForEach(bullets, id: \.self) { line in
+                            Label {
+                                Text(line)
+                                    .foregroundStyle(.white)
+                            } icon: {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .symbolRenderingMode(.hierarchical)
+                            }
+                            .font(.body)
+                            .foregroundStyle(.mint)
+                            .accessibilityElement(children: .combine)
+                        }
+                    }
+                    .frame(maxWidth: 540, alignment: .leading)
+                    .padding(.horizontal)
+                }
+
+                if let phrases = page.voicePhrases, !phrases.isEmpty {
+                    VoicePhrasesView(phrases: phrases)
+                        .padding(.top, 4)
+                }
+
                 if let footnote = page.footnote {
                     Text(footnote)
                         .font(.footnote)
@@ -112,7 +136,67 @@ private struct OnboardingCard: View {
     }
 }
 
-private struct OnboardingPage: Identifiable {
+private struct VoicePhrasesView: View {
+    let phrases: [String]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Try saying")
+                .font(.headline)
+                .foregroundStyle(.mint)
+            ForEach(phrases, id: \.self) { text in
+                HStack(spacing: 8) {
+                    Image(systemName: "siri.waveform")
+                        .imageScale(.medium)
+                        .symbolRenderingMode(.hierarchical)
+                        .foregroundStyle(.cyan)
+                    Text("“\(text)”")
+                        .foregroundStyle(.white)
+                }
+                .accessibilityElement(children: .combine)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(14)
+        .background(
+            .ultraThinMaterial,
+            in: RoundedRectangle(cornerRadius: 16, style: .continuous)
+        )
+        .padding(.horizontal)
+    }
+}
+
+private struct PrimaryOnboardingButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [.mint, .cyan],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+            )
+            .foregroundColor(.white)
+            .shadow(
+                color: .mint.opacity(configuration.isPressed ? 0.15 : 0.3),
+                radius: configuration.isPressed ? 8 : 16,
+                y: configuration.isPressed ? 4 : 10
+            )
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(
+                .spring(response: 0.35, dampingFraction: 0.8),
+                value: configuration.isPressed
+            )
+            .accessibilityAddTraits(.isButton)
+    }
+}
+
+// MARK: - Model
+
+private struct OnboardingPage: Identifiable, Hashable {
     let id = UUID()
     let title: String
     let subtitle: String
@@ -120,16 +204,23 @@ private struct OnboardingPage: Identifiable {
     let symbol: String
     let accent: Color
     let titleColor: Color
+    let bullets: [String]?
+    let voicePhrases: [String]?
 
     static let pages: [OnboardingPage] = [
         .init(
             title: "FocusAR",
             subtitle: "Transform chaos into calm, one tap at a time.",
             footnote:
-                "On-device and private. No images or video leave your iPhone.",
+                "On-device and private. No images or audio leave your iPhone.",
             symbol: "sparkles",
             accent: .pink,
-            titleColor: .cyan
+            titleColor: .cyan,
+            bullets: [
+                "Built for clarity, calm, and accessibility",
+                "Designed to feel native on iOS",
+            ],
+            voicePhrases: nil
         ),
         .init(
             title: "How It Works",
@@ -138,25 +229,46 @@ private struct OnboardingPage: Identifiable {
             footnote: nil,
             symbol: "camera.viewfinder",
             accent: .mint,
-            titleColor: .mint
+            titleColor: .mint,
+            bullets: [
+                "Tap cluttered areas for gentle feedback",
+                "Haptics and sound guide you as you go",
+            ],
+            voicePhrases: nil
         ),
         .init(
-            title: "Intelligent & Immersive",
+            title: "Hands-Free Control",
             subtitle:
-                "Powered by Core ML, Vision, ARKit, and RealityKit—paired with gentle haptics and calming audio feedback.",
-            footnote: nil,
-            symbol: "brain.head.profile",
-            accent: .green,
-            titleColor: .teal
+                "Use Siri to start a session or the in-app mic to control it—fully on device.",
+            footnote:
+                "You can grant speech permission when you first use the mic.",
+            symbol: "siri.waveform",
+            accent: .cyan,
+            titleColor: .teal,
+            bullets: [
+                "Say “Start a focus session in FocusAR”",
+                "Tap the mic to use in-session commands",
+            ],
+            voicePhrases: [
+                "Start a focus session in FocusAR",
+                "End session",
+                "Mute sound",
+                "Unmute sound",
+            ]
         ),
         .init(
             title: "Stay As Long As You Like",
             subtitle:
-                "Sessions have no time limit. A subtle timer shows your elapsed time, and you can end anytime.",
-            footnote: "Tap End in the top-right when you’re finished.",
+                "Sessions are open-ended with a subtle timer. End anytime with the End button at the top of the camera view.",
+            footnote: "You can revisit these tips from Home → How it works.",
             symbol: "clock",
             accent: .cyan,
-            titleColor: .indigo
+            titleColor: .indigo,
+            bullets: [
+                "Open-ended sessions—no time limits",
+                "One clear End control when you’re done",
+            ],
+            voicePhrases: nil
         ),
     ]
 }
