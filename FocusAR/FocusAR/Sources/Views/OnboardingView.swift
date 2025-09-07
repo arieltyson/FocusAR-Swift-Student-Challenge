@@ -126,7 +126,7 @@ private struct OnboardingPage: Identifiable {
             title: "FocusAR",
             subtitle: "Transform chaos into calm, one tap at a time.",
             footnote:
-                "Built with on-device intelligence. No media leaves your iPhone.",
+                "On-device and private. No images or video leave your iPhone.",
             symbol: "sparkles",
             accent: .pink,
             titleColor: .cyan
@@ -143,19 +143,18 @@ private struct OnboardingPage: Identifiable {
         .init(
             title: "Intelligent & Immersive",
             subtitle:
-                "Powered by Core ML, Vision, ARKit, RealityKit—paired with gentle haptics and calming audio feedback.",
+                "Powered by Core ML, Vision, ARKit, and RealityKit—paired with gentle haptics and calming audio feedback.",
             footnote: nil,
             symbol: "brain.head.profile",
             accent: .green,
             titleColor: .teal
         ),
         .init(
-            title: "You're All Set",
+            title: "Stay As Long As You Like",
             subtitle:
-                "Begin a 3-minute session and tap cluttered areas to organize them.",
-            footnote:
-                "You can revisit these tips anytime from Home → How it works.",
-            symbol: "hand.tap",
+                "Sessions have no time limit. A subtle timer shows your elapsed time, and you can end anytime.",
+            footnote: "Tap End in the top-right when you’re finished.",
+            symbol: "clock",
             accent: .cyan,
             titleColor: .indigo
         ),

@@ -2,32 +2,16 @@ import ARKit
 import Foundation
 import RealityKit
 
-struct TimerWrapper: @unchecked Sendable {
-    let timer: Timer
-    func invalidate() {
-        timer.invalidate()
-    }
-}
-
 @MainActor
-class ARSessionManager: NSObject, ObservableObject {
-    @Published var isSessionReady = false
+final class ARSessionManager: NSObject, ObservableObject {
+    @Published private(set) var isSessionReady = false
     private var arView: ARView?
     private let clutterDetector = ClutterDetector()
-
-    @Published var sessionProgress: Double = 0.0
-    private var progressTimer: TimerWrapper?
-
-    override init() {
-        super.init()
-        setupProgressTimer()
-    }
 
     func setupARView(_ view: ARView) {
         arView = view
 
         guard !ProcessInfo.processInfo.isPreview else {
-            // Add mock content for SwiftUI previews
             let sphere = ModelEntity(
                 mesh: .generateSphere(radius: 0.1),
                 materials: [SimpleMaterial(color: .blue, isMetallic: false)]
@@ -42,61 +26,31 @@ class ARSessionManager: NSObject, ObservableObject {
         config.planeDetection = [.horizontal]
         view.session.delegate = self
         view.session.run(config)
-
-        DispatchQueue.main.async { [weak self] in
-            self?.isSessionReady = true
-        }
-    }
-
-    private func setupProgressTimer() {
-        let timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) {
-            [weak self] _ in
-            Task { @MainActor in
-                guard let self = self else { return }
-                if self.sessionProgress < 1.0 {
-                    // 3-minute session => 180 seconds => 1800 intervals of 0.1s
-                    // So 1 / 1800 = ~0.00056 per interval
-                    self.sessionProgress += 0.00056
-                } else {
-                    self.progressTimer?.invalidate()
-                }
-            }
-        }
-        progressTimer = TimerWrapper(timer: timer)
-    }
-
-    deinit {
-        progressTimer?.invalidate()
     }
 
     func triggerARFeedback(at point: CGPoint) {
         guard let arView = arView else { return }
-        if let raycastResult = arView.raycast(
+        if let hit = arView.raycast(
             from: point,
             allowing: .estimatedPlane,
             alignment: .horizontal
         ).first {
-            let worldTransform = raycastResult.worldTransform
-            let position = SIMD3<Float>(
-                worldTransform.columns.3.x,
-                worldTransform.columns.3.y,
-                worldTransform.columns.3.z
-            )
+            let t = hit.worldTransform
+            let pos = SIMD3<Float>(t.columns.3.x, t.columns.3.y, t.columns.3.z)
 
             let sphere = ModelEntity(
                 mesh: .generateSphere(radius: 0.05),
                 materials: [SimpleMaterial(color: .blue, isMetallic: false)]
             )
-            sphere.position = position
+            sphere.position = pos
 
-            let anchor = AnchorEntity(world: position)
+            let anchor = AnchorEntity(world: pos)
             anchor.addChild(sphere)
             arView.scene.addAnchor(anchor)
 
-            let scaleUp = SIMD3<Float>(repeating: 2.0)
             sphere.move(
                 to: Transform(
-                    scale: scaleUp,
+                    scale: .init(repeating: 2.0),
                     rotation: sphere.transform.rotation,
                     translation: sphere.position
                 ),
@@ -112,14 +66,26 @@ class ARSessionManager: NSObject, ObservableObject {
 }
 
 extension ARSessionManager: ARSessionDelegate {
-    nonisolated func session(_ session: ARSession, didUpdate frame: ARFrame) {
-        // Only process every 10th frame to reduce overhead.
-        if Int(frame.timestamp) % 10 == 0 {
-            // Extract only the pixel buffer so we don't retain the entire ARFrame.
-            let pixelBuffer = frame.capturedImage
+    nonisolated func session(
+        _ session: ARSession,
+        cameraDidChangeTrackingState camera: ARCamera
+    ) {
+        if case .normal = camera.trackingState {
             Task { @MainActor in
-                self.clutterDetector.detectClutter(in: pixelBuffer)
+                if !self.isSessionReady { self.isSessionReady = true }
             }
+        }
+    }
+
+    nonisolated func session(_ session: ARSession, didUpdate frame: ARFrame) {
+        struct Throttle { static var last: TimeInterval = 0 }
+        let now = frame.timestamp
+        guard now - Throttle.last >= 0.5 else { return }
+        Throttle.last = now
+
+        let pixelBuffer = frame.capturedImage
+        Task { @MainActor in
+            self.clutterDetector.detectClutter(in: pixelBuffer)
         }
     }
 }

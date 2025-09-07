@@ -9,75 +9,86 @@ struct HomeView: View {
             ZStack {
                 // Subtle, premium background
                 LinearGradient(
-                    colors: [Color.black, Color.black.opacity(0.8)],
+                    colors: [Color.black, Color.black.opacity(0.85)],
                     startPoint: .top,
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
 
-                VStack(spacing: 28) {
-                    // Hero
-                    VStack(spacing: 12) {
-                        Text("FocusAR")
-                            .font(.largeTitle.weight(.bold))
-                            .foregroundStyle(
-                                .linearGradient(
-                                    colors: [.cyan, .mint],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .accessibilityAddTraits(.isHeader)
+                VStack(spacing: 0) {
+                    // ---- Centered main area ----
+                    Spacer(minLength: 0)
 
-                        Text("Transform chaos into calm, one tap at a time.")
+                    VStack(spacing: 28) {
+                        // Hero
+                        VStack(spacing: 12) {
+                            Text("FocusAR")
+                                .font(.largeTitle.weight(.bold))
+                                .foregroundStyle(
+                                    .linearGradient(
+                                        colors: [.cyan, .mint],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .accessibilityAddTraits(.isHeader)
+
+                            Text(
+                                "Transform chaos into calm, one tap at a time."
+                            )
                             .multilineTextAlignment(.center)
                             .font(.title3)
                             .foregroundStyle(.secondary)
                             .padding(.horizontal)
                             .minimumScaleFactor(0.8)
-                    }
-                    .padding(.top, 24)
-
-                    // A tiny “benefit” card (optional)
-                    GroupBox {
-                        HStack(spacing: 12) {
-                            Image(systemName: "sparkles")
-                                .imageScale(.large)
-                                .symbolRenderingMode(.hierarchical)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("3-minute focus session")
-                                    .font(.headline)
-                                Text(
-                                    "Tap cluttered areas to calm your space with gentle audio + haptics."
-                                )
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
-                            }
-                            Spacer()
                         }
-                        .accessibilityElement(children: .combine)
-                    }
-                    .groupBoxStyle(.automatic)
-                    .padding(.horizontal)
 
-                    // Primary CTA
-                    Button {
-                        HapticsManager.shared.playGentlePulse()
-                        presentSession = true
-                    } label: {
-                        Label("Start Session", systemImage: "camera.viewfinder")
+                        // Benefit card
+                        GroupBox {
+                            HStack(spacing: 12) {
+                                Image(systemName: "sparkles")
+                                    .imageScale(.large)
+                                    .symbolRenderingMode(.hierarchical)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text("Open-ended focus")
+                                        .font(.headline)
+                                    Text(
+                                        "Start a session and stay as long as you like. Tap cluttered areas for gentle audio + haptics."
+                                    )
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+                            .accessibilityElement(children: .combine)
+                        }
+                        .groupBoxStyle(.automatic)
+                        .padding(.horizontal)
+
+                        // Primary CTA
+                        Button {
+                            HapticsManager.shared.playGentlePulse()
+                            presentSession = true
+                        } label: {
+                            Label(
+                                "Start Session",
+                                systemImage: "camera.viewfinder"
+                            )
                             .font(.title2.weight(.semibold))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 18)
                             .contentShape(Rectangle())
+                        }
+                        .buttonStyle(PrimaryShinyButtonStyle())
+                        .accessibilityHint(
+                            "Opens the camera to begin an AR focus session. End anytime with the End button."
+                        )
+                        .padding(.horizontal)
                     }
-                    .buttonStyle(PrimaryShinyButtonStyle())
-                    .accessibilityHint(
-                        "Opens the camera to begin a 3-minute AR focus session."
-                    )
-                    .padding(.horizontal)
 
-                    // Secondary row
+                    Spacer(minLength: 0)
+
+                    // ---- Bottom row: How it works + Privacy ----
                     HStack(spacing: 20) {
                         Button {
                             showOnboarding = true
@@ -97,8 +108,8 @@ struct HomeView: View {
                     }
                     .padding(.horizontal)
                     .foregroundStyle(.secondary)
-
-                    Spacer(minLength: 24)
+                    .safeAreaPadding(.bottom)  // keep above home indicator
+                    .padding(.bottom, 8)  // small extra breathing room
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -110,8 +121,11 @@ struct HomeView: View {
                 .interactiveDismissDisabled()
             }
             .fullScreenCover(isPresented: $presentSession) {
-                ContentView()  // your AR experience
-                    .ignoresSafeArea()
+                ContentView(onEnd: {
+                    HapticsManager.shared.playGentlePulse()
+                    presentSession = false
+                })
+                .ignoresSafeArea()
             }
         }
     }
@@ -147,7 +161,7 @@ struct PrimaryShinyButtonStyle: ButtonStyle {
     }
 }
 
-// Simple, explicit privacy page (keeps Review happy)
+// Simple, explicit privacy page
 private struct PrivacyView: View {
     var body: some View {
         List {
@@ -159,6 +173,11 @@ private struct PrivacyView: View {
             Section("Haptics & Audio") {
                 Text(
                     "Gentle haptics and calming audio provide feedback as you interact."
+                )
+            }
+            Section("Session Control") {
+                Text(
+                    "Sessions are open-ended. You can end anytime using the End button at the top of the camera view."
                 )
             }
         }
